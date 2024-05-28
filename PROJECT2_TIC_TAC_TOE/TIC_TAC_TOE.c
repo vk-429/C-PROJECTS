@@ -276,206 +276,10 @@ void insert(char (*a)[3],int (*check)[3])
     }
 }
 
-// Function to handle the computer's turn in smart mode
-void Computers_turn(char (*a)[3],int (*check)[3])
-{
-    int i,j;
-    int win_row_index=-1;
-    int win_column_index=-1;
-    int win_diag1_flag=0;
-    int win_diag2_flag=0;
-    int row_index=-1;
-    int column_index=-1;
-    int diag1_flag=0;
-    int diag2_flag=0;
-    int row_count01_index=-1;
-    int column_count01_index=-1;
-    int diag1_count01_flag=0;
-    int diag2_count01_flag=0;
-    
-    // Analyze the board to determine the next move
-    for(i=0;i<3;i++)
-    {
-        int count_row0=0;
-        int count_rowx=0;
-        int count_column0=0;
-        int count_columnx=0;
-        int diag1_count0=0;
-        int diag1_countx=0;
-        int diag2_count0=0;
-        int diag2_countx=0;
-
-        for(j=0;j<3;j++)
-        {
-            if(a[i][j]=='O') count_row0++;
-            else if(a[i][j]=='X') count_rowx++;
-            if(a[j][i]=='O') count_column0++;
-            else if(a[j][i]=='X') count_columnx++;
-            if(a[j][j]=='O') diag1_count0++;
-            else if(a[j][j]=='X') diag1_countx++;
-            if(a[j][2-j]=='O') diag2_count0++;
-            else if(a[j][2-j]=='X') diag2_countx++;
-        }
-
-        if(count_rowx==2 && count_row0==0) win_row_index=i;
-        else if(count_row0==2 && count_rowx==0) row_index=i;
-        else if(count_row0==0 && count_rowx==1) row_count01_index=i;
-        if(count_columnx==2 && count_column0==0) win_column_index=i;
-        else if(count_column0==2 && count_columnx==0) column_index=i;
-        else if(count_column0==0 && count_columnx==1) column_count01_index=i;
-        if(diag1_countx==2 && diag1_count0==0) win_diag1_flag=1;
-        else if(diag1_count0==2 && diag1_countx==0) diag1_flag=1;
-        else if(diag1_count0==0 && diag1_countx==1) diag1_count01_flag=1;
-        if(diag2_countx==2 && diag2_count0==0) win_diag2_flag=1;
-        else if(diag2_count0==2 && diag2_countx==0) diag2_flag=1;
-        else if(diag2_count0==0 && diag2_countx==1) diag2_count01_flag=1; 
-    }
-
-    // First priority: Win if possible
-    if(win_row_index!=-1) insert_in_row(a,check,win_row_index);
-    else if(win_column_index!=-1) insert_in_column(a,check,win_column_index);
-    else if(win_diag1_flag==1) insert_in_diag1(a,check);
-    else if(win_diag2_flag==1) insert_in_diag2(a,check);
-
-    // Second priority: Block the opponent
-    else if(row_index!=-1) insert_in_row(a,check,row_index);
-    else if(column_index!=-1) insert_in_column(a,check,column_index);
-    else if(diag1_flag==1) insert_in_diag1(a,check);
-    else if(diag2_flag==1) insert_in_diag2(a,check);
-
-    // Otherwise, choose a position inteding to win
-    else if(row_count01_index!=-1) insert_in_row(a,check,row_count01_index);
-    else if(column_count01_index!=-1) insert_in_column(a,check,column_count01_index);
-    else if(diag1_count01_flag==1) insert_in_diag1(a,check);
-    else if(diag2_count01_flag==1) insert_in_diag2(a,check);
-
-    // If none of the above, choose the first available position
-    else insert(a,check);
-}
-
-// Function to display the game screen for smart mode
-void GameScreen_Smart(char *player,char (*a)[3],int (*check)[3])
-{
-    TEXT_COLOR_DECLARATION;
-    system("cls");
-    BLUE_COLOR_TEXT;
-    printf("################ TIC TAC TOE ################\n\n");
-    GREEN_COLOR_TEXT;
-    printf("           %s Vs SMART COMPUTER\n\n",player);
-    DEFAULT_COLOR_TEXT;
-    printf("Mark of %s : O\n",player);
-    DEFAULT_COLOR_TEXT;
-    printf("Mark of COMOPUTER : ");
-    RED_COLOR_TEXT;
-    printf("X\n\n");
-    GREEN_COLOR_TEXT;
-
-    // Printing Matrix 
-    PrintMatrix(a,check);
-
-    DEFAULT_COLOR_TEXT;
-}
-
-// Function to handle smart game mode with computer
-void Smart(char *player)
-{
-    TEXT_COLOR_DECLARATION;
-    char a[3][3]={{'1','2','3'},{'4','5','6'},{'7','8','9'}};
-    int check[3][3]={0};
-
-    // Initial Game Screen
-    GameScreen_Smart(player,a,check);
-
-    char markplace;
-    int turn_no;
-
-    // Loop to continue the Game until it is over
-    for(turn_no=0;turn_no<5;turn_no++)
-    {
-        input1:DEFAULT_COLOR_TEXT;
-
-        // Taking player's move input
-        printf("%s, Enter your marking place : ",player);
-        markplace='\0';
-        input:markplace=getch();
-
-        // Checking for Invalid Input
-        if(markplace<'1' || markplace>'9')goto input;
-
-        int index=markplace-'1';
-        int row=index/3;
-        int column=index%3;
-
-        if(check[row][column]) // Cheking if place is already occupied
-        {
-            RED_COLOR_TEXT;
-            printf("Place Already Occupied!");
-            sleep(1);
-            printf("\r\033[K");
-            goto input1;
-        }
-
-        // Update Matrices
-        check[row][column]=1;
-        a[row][column]='O';
-
-        // Checking if Game is over(for player)
-        bool result=false;
-        if(turn_no>=2)
-            result=isGameOver(a);
-
-        // Printing Result(for player) 
-        if(result==true)
-        {
-            GameScreen_Smart(player,a,check);
-            sleep(2);
-            system("cls");
-            BLUE_COLOR_TEXT;
-            printf("################ TIC TAC TOE ################\n\n");
-            GREEN_COLOR_TEXT;
-            printf("                 YOU WON!!!\n\n",player);
-            return;
-        }
-        else if(turn_no==4)
-        {
-            GameScreen_Smart(player,a,check);
-            sleep(2);
-            system("cls");
-            BLUE_COLOR_TEXT;
-            printf("################ TIC TAC TOE ################\n\n");
-            YELLOW_COLOR_TEXT;
-            printf("                   DRAW!!!\n\n",player);
-            return;
-        }
-
-        // Computer's move
-        if(turn_no<=3)
-            Computers_turn(a,check);
-        
-        sleep(0.5);
-        GameScreen_Smart(player,a,check); // Update Game Screen after every move 
-
-        // Checking if Game is over(for computer)
-        if(turn_no>=2)
-            result=isGameOver(a);
-
-        // Printing Result(for computer) 
-        if(result==true)
-        {
-            RED_COLOR_TEXT;
-            sleep(2);
-            system("cls");
-            BLUE_COLOR_TEXT;
-            printf("################ TIC TAC TOE ################\n\n");
-            RED_COLOR_TEXT;
-            printf("                 YOU LOST!!!\n\n",player);
-            return;
-        }
-    }
-}
-
-// Function to handle the computer's turn in evil mode
-void Evils_turn(char (*a)[3],int (*check)[3])
+// Function to handle the Computer's Turn in both mode depending upon the value of isEvil 
+// isEvil == 0 --> Smart Computer
+// isEvil == 1 --> Evil Computer
+void Computers_turn(char (*a)[3],int (*check)[3],int isEvil)
 {
     int i,j;
     int win_row_index=-1;
@@ -551,7 +355,7 @@ void Evils_turn(char (*a)[3],int (*check)[3])
     else insert(a,check);
 
     // Cheking if game is not over, then block opponent in each possibility to win in next move 
-    if(!isGameOver(a))
+    if(!isGameOver(a) && isEvil==1)
     {
         if(row_index!=-1) insert_in_row(a,check,row_index);
         if(column_index!=-1) insert_in_column(a,check,column_index);
@@ -560,15 +364,20 @@ void Evils_turn(char (*a)[3],int (*check)[3])
     }
 }
 
-// Function to display the game screen for smart mode
-void GameScreen_Evil(char *player,char (*a)[3],int (*check)[3])
+// Function to display the game screen for computer mode(evil or smart)
+// isEvil == 0 --> Smart Computer
+// isEvil == 1 --> Evil Computer
+void GameScreen_Computer(char *player,char (*a)[3],int (*check)[3],int isEvil)
 {
     TEXT_COLOR_DECLARATION;
     system("cls");
     BLUE_COLOR_TEXT;
     printf("################ TIC TAC TOE ################\n\n");
     GREEN_COLOR_TEXT;
-    printf("           %s Vs EVIL COMPUTER\n\n",player);
+    if(isEvil==1)
+        printf("           %s Vs EVIL COMPUTER\n\n",player);
+    else
+        printf("           %s Vs SMART COMPUTER\n\n",player);  
     DEFAULT_COLOR_TEXT;
     printf("Mark of %s : O\n",player);
     DEFAULT_COLOR_TEXT;
@@ -577,10 +386,108 @@ void GameScreen_Evil(char *player,char (*a)[3],int (*check)[3])
     printf("X\n\n");
     GREEN_COLOR_TEXT;
 
-    // Printing Matrix
+    // Printing Matrix 
     PrintMatrix(a,check);
 
     DEFAULT_COLOR_TEXT;
+}
+
+// Function to handle smart game mode with computer
+void Smart(char *player)
+{
+    TEXT_COLOR_DECLARATION;
+    char a[3][3]={{'1','2','3'},{'4','5','6'},{'7','8','9'}};
+    int check[3][3]={0};
+
+    // Initial Game Screen
+    GameScreen_Computer(player,a,check,0);
+
+    char markplace;
+    int turn_no;
+
+    // Loop to continue the Game until it is over
+    for(turn_no=0;turn_no<5;turn_no++)
+    {
+        input1:DEFAULT_COLOR_TEXT;
+
+        // Taking player's move input
+        printf("%s, Enter your marking place : ",player);
+        markplace='\0';
+        input:markplace=getch();
+
+        // Checking for Invalid Input
+        if(markplace<'1' || markplace>'9')goto input;
+
+        int index=markplace-'1';
+        int row=index/3;
+        int column=index%3;
+
+        if(check[row][column]) // Cheking if place is already occupied
+        {
+            RED_COLOR_TEXT;
+            printf("Place Already Occupied!");
+            sleep(1);
+            printf("\r\033[K");
+            goto input1;
+        }
+
+        // Update Matrices
+        check[row][column]=1;
+        a[row][column]='O';
+
+        // Checking if Game is over(for player)
+        bool result=false;
+        if(turn_no>=2)
+            result=isGameOver(a);
+
+        // Printing Result(for player) 
+        if(result==true)
+        {
+            GameScreen_Computer(player,a,check,0);
+            sleep(2);
+            system("cls");
+            BLUE_COLOR_TEXT;
+            printf("################ TIC TAC TOE ################\n\n");
+            GREEN_COLOR_TEXT;
+            printf("                 YOU WON!!!\n\n",player);
+            return;
+        }
+        else if(turn_no==4)
+        {
+            GameScreen_Computer(player,a,check,0);
+            sleep(2);
+            system("cls");
+            BLUE_COLOR_TEXT;
+            printf("################ TIC TAC TOE ################\n\n");
+            YELLOW_COLOR_TEXT;
+            printf("                   DRAW!!!\n\n",player);
+            return;
+        }
+
+        // Computer's move
+        if(turn_no<=3)
+            Computers_turn(a,check,0);
+        
+        sleep(0.5);
+        GameScreen_Computer(player,a,check,0); // Update Game Screen after every move 
+
+        // Checking if Game is over(for computer)
+        if(turn_no>=2)
+            result=isGameOver(a);
+
+        // Printing Result(for computer) 
+        if(result==true)
+        {
+            RED_COLOR_TEXT;
+            sleep(2);
+            system("cls");
+            BLUE_COLOR_TEXT;
+            printf("################ TIC TAC TOE ################\n\n");
+            RED_COLOR_TEXT;
+            printf("                 YOU LOST!!!\n\n",player);
+            return;
+        }
+    }
 }
 
 // Function to handle evil game mode with computer
@@ -591,7 +498,7 @@ void Evil(char *player)
     int check[3][3]={0};
 
     // Initial Game Screen
-    GameScreen_Evil(player,a,check);
+    GameScreen_Computer(player,a,check,1);
 
     char markplace;
     int occupancy=0;
@@ -626,7 +533,7 @@ void Evil(char *player)
         a[row][column]='O';
 
         // Evil Computer's turn
-        Evils_turn(a,check);
+        Computers_turn(a,check,1);
 
         // Count occupied places and update occupancy count
         int count=0;
@@ -639,10 +546,12 @@ void Evil(char *player)
         if(occupancy>=5)
             result=isGameOver(a);
 
+        sleep(0.5);
+        GameScreen_Computer(player,a,check,1);// Update Game Screen after each move
+
         // Printing Result
         if(result==true)
         {
-            GameScreen_Evil(player,a,check);
             sleep(2);
             system("cls");
             BLUE_COLOR_TEXT;
@@ -653,7 +562,6 @@ void Evil(char *player)
         }
         else if(count==9)
         {
-            GameScreen_Evil(player,a,check);
             sleep(2);
             system("cls");
             BLUE_COLOR_TEXT;
@@ -662,9 +570,6 @@ void Evil(char *player)
             printf("                   DRAW!!!\n\n",player);
             return;
         }
-        
-        sleep(0.5);
-        GameScreen_Evil(player,a,check);// Update Game Screen after each move
     }
 }
 
